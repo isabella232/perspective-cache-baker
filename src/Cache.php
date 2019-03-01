@@ -47,12 +47,12 @@ class Cache
     /**
      * Bakes a package of ours.
      *
-     * @param string $path      The path to the file.
      * @param string $namespace The namespace the package operates in.
+     * @param string $path      The path to the file.
      *
      * @return void
      */
-    public static function bakeOurPackageCache(string $path, string $namespace)
+    private static function bakeOurPackageCache(string $namespace, string $path)
     {
         self::bakeWriteCacheFile($path.'/APIRouter.php', $namespace);
 
@@ -72,27 +72,30 @@ class Cache
     /**
      * Bakes all dependencies.
      *
-     * @param string $vendorPath             The vendor path.
-     * @param array  $controlledDependencies The squiz style dependencies.
+     * @param string $namespace The namespace the main/top level project operates in.
+     * @param array  $paths     The project and dependency paths.
      *
      * @return void
      */
-    public static function bakeDependencyCache(string $vendorPath, array $controlledDependencies)
+    public static function bakeCache(string $namespace, array $paths)
     {
-        foreach ($controlledDependencies as $namespace => $ourPath) {
-            Cache::bakeOurPackageCache($ourPath.'/src', $namespace);
+        $projectPath = $paths[$namespace];
+        $vendorPath  = $projectPath.'/vendor';
+
+        foreach ($paths as $ourNamespace => $ourPath) {
+            self::bakeOurPackageCache($ourNamespace, $ourPath.'/src');
         }
 
         $filepaths  = \Gateway\Libs\FileSystem::listDirectory($vendorPath, ['.php']);
         foreach ($filepaths as $filepath) {
-            if (substr($filepath, $vendorPath.'/composer') === 0) {
+            if (strpos($filepath, $vendorPath.'/composer') === 0) {
                 // Skip composer.  It won't be used at runtime.
                 continue;
             }
 
             $bakedAlready = false;
-            foreach ($controlledDependencies as $ourPath) {
-                if (substr($filepath, $ourPath) === 0) {
+            foreach ($paths as $ourPath) {
+                if (strpos($filepath, $ourPath) === 0) {
                     // We baked this already as one of our packages.
                     $bakedAlready = true;
                     break;
@@ -103,11 +106,10 @@ class Cache
                 continue;
             }
 
-            // TODO: We need namespace here.
-            self::bakeWriteCacheFile($filepath, '');
+            self::bakeWriteCacheFile($filepath, $namespace);
         }
 
-    }//end bakeDependencyCache()
+    }//end bakeCache()
 
 
     /**
@@ -127,7 +129,7 @@ class Cache
         string $content=null,
         string $filepath=null,
         bool $stripFirstOpenPHP=false,
-        string $namespace=''
+        string $namespace=null
     ) {
         if ($content === null) {
             if (file_exists($filepath) === false) {
@@ -150,17 +152,11 @@ class Cache
         }
 
         $config = new Config(['--report=summary']);
-        if ($namespace !== '') {
-            $namespaces = explode('\\', $namespace);
-            if (count($namespaces) < 2) {
-                throw \Exception('Expecting a namespace with at least 2 parts.');
-            }
-
-            $namespace  = array_shift($namespaces).'\\';
-            $namespace .= array_shift($namespaces);
+        if (empty($namespace) === true) {
+            throw \Exception('Expecting a namespace.');
         }
 
-        $config->setConfigData('namespace', $namespace, true);
+        $config->setConfigData('namespace', '\\'.$namespace, true);
         $config->setConfigData('stripFirstOpenPHP', $stripFirstOpenPHP, true);
         $config->standards = array(dirname(__DIR__).'/standards/PerspectiveCache');
 

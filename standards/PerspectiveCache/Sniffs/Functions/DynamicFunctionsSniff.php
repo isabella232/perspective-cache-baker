@@ -176,7 +176,7 @@ class DynamicFunctionsSniff implements Sniff
                 $data  = [$tokens[$stackPtr]['content']];
                 $fix   = $phpcsFile->addFixableError($error, $stackPtr, 'Found', $data);
                 if ($fix === true) {
-                    $phpcsFile->fixer->addContent($startScopeOpenerPtr, $namespace.'\framework\Cache::noCache();');
+                    $phpcsFile->fixer->addContent($startScopeOpenerPtr, $namespace.'\Framework\Cache::noCache();');
 
                     // 1 fix fixes all for this file/function so for speed just end now.
                     break;
@@ -229,7 +229,7 @@ class DynamicFunctionsSniff implements Sniff
                         if ($fix === true) {
                             $phpcsFile->fixer->addContent(
                                 $startScopeOpenerPtr,
-                                $namespace.'\framework\Cache::noCache();'
+                                $namespace.'\Framework\Cache::noCache();'
                             );
 
                             // 1 fix fixes all for this file/function so for speed just end now.
@@ -265,7 +265,7 @@ class DynamicFunctionsSniff implements Sniff
             if ($fix === true) {
                 $phpcsFile->fixer->addContentBefore(
                     $startScopeOpenerPtr,
-                    $namespace.'\framework\Cache::noCache();'
+                    $namespace.'\Framework\Cache::noCache();'
                 );
 
                 // 1 fix fixes all for this file/function so for speed just end now.
