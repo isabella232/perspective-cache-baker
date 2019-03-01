@@ -24,6 +24,93 @@ class Cache
 
 
     /**
+     * Bakes a given file from filepath and if it changed writes the changed content to that file for caching.
+     *
+     * @param string $path      The path to the file.
+     * @param string $namespace The namespace the file operates in.
+     *
+     * @return void
+     */
+    private static function bakeWriteCacheFile(string $path, string $namespace)
+    {
+        if (file_exists($path) === true) {
+            $originalContent = file_get_contents($path);
+            $content         = Cache::bake($originalContent, null, false, $namespace);
+            if ($originalContent !== $content) {
+                file_put_contents($path, $content);
+            }
+        }
+
+    }//end bakeWriteCacheFile()
+
+
+    /**
+     * Bakes a package of ours.
+     *
+     * @param string $path      The path to the file.
+     * @param string $namespace The namespace the package operates in.
+     *
+     * @return void
+     */
+    public static function bakeOurPackageCache(string $path, string $namespace)
+    {
+        self::bakeWriteCacheFile($path.'/APIRouter.php', $namespace);
+
+        $filepaths = \Gateway\Libs\FileSystem::listDirectory($path.'/App', ['.php']);
+        foreach ($filepaths as $filepath) {
+            self::bakeWriteCacheFile($filepath, $namespace);
+        }
+
+        $filepaths = \Gateway\Libs\FileSystem::listDirectory($path.'/CustomTypes', ['.php']);
+        foreach ($filepaths as $filepath) {
+            self::bakeWriteCacheFile($filepath, $namespace);
+        }
+
+    }//end bakeOurPackageCache()
+
+
+    /**
+     * Bakes all dependencies.
+     *
+     * @param string $vendorPath             The vendor path.
+     * @param array  $controlledDependencies The squiz style dependencies.
+     *
+     * @return void
+     */
+    public static function bakeDependencyCache(string $vendorPath, array $controlledDependencies)
+    {
+        foreach ($controlledDependencies as $namespace => $ourPath) {
+            Cache::bakeOurPackageCache($ourPath.'/src', $namespace);
+        }
+
+        $filepaths  = \Gateway\Libs\FileSystem::listDirectory($vendorPath, ['.php']);
+        foreach ($filepaths as $filepath) {
+            if (substr($filepath, $vendorPath.'/composer') === 0) {
+                // Skip composer.  It won't be used at runtime.
+                continue;
+            }
+
+            $bakedAlready = false;
+            foreach ($controlledDependencies as $ourPath) {
+                if (substr($filepath, $ourPath) === 0) {
+                    // We baked this already as one of our packages.
+                    $bakedAlready = true;
+                    break;
+                }
+            }
+
+            if ($bakedAlready === true) {
+                continue;
+            }
+
+            // TODO: We need namespace here.
+            self::bakeWriteCacheFile($filepath, '');
+        }
+
+    }//end bakeDependencyCache()
+
+
+    /**
      * Runs sniffs on the content for cache integration and returns the modified content.
      *
      * @param string  $content           The content to check.
