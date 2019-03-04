@@ -56,12 +56,12 @@ class Cache
     {
         self::bakeWriteCacheFile($path.'/APIRouter.php', $namespace);
 
-        $filepaths = \Gateway\Libs\FileSystem::listDirectory($path.'/App', ['.php']);
+        $filepaths = \Perspective\Gateway\Libs\FileSystem::listDirectory($path.'/App', ['.php']);
         foreach ($filepaths as $filepath) {
             self::bakeWriteCacheFile($filepath, $namespace);
         }
 
-        $filepaths = \Gateway\Libs\FileSystem::listDirectory($path.'/CustomTypes', ['.php']);
+        $filepaths = \Perspective\Gateway\Libs\FileSystem::listDirectory($path.'/CustomTypes', ['.php']);
         foreach ($filepaths as $filepath) {
             self::bakeWriteCacheFile($filepath, $namespace);
         }
@@ -86,7 +86,7 @@ class Cache
             self::bakeOurPackageCache($ourNamespace, $ourPath.'/src');
         }
 
-        $filepaths  = \Gateway\Libs\FileSystem::listDirectory($vendorPath, ['.php']);
+        $filepaths  = \Perspective\Gateway\Libs\FileSystem::listDirectory($vendorPath, ['.php']);
         foreach ($filepaths as $filepath) {
             if (strpos($filepath, $vendorPath.'/composer') === 0) {
                 // Skip composer.  It won't be used at runtime.
