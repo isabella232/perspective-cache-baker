@@ -27,3 +27,9 @@ class API
     }
 
 }//end class
+
+interface Foo
+{
+    public function foo();
+    public function bar($baz);
+}

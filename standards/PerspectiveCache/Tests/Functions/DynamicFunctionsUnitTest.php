@@ -7,7 +7,7 @@
  * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
  */
 
-namespace PHP_CodeSniffer\Standards\Perspective\Common\Tests\Functions;
+namespace PHP_CodeSniffer\Standards\PerspectiveCache\Tests\Functions;
 
 use PHP_CodeSniffer\Tests\Standards\AbstractSniffUnitTest;
 
@@ -33,7 +33,6 @@ class DynamicFunctionsUnitTest extends AbstractSniffUnitTest
             15 => 1,
             16 => 2,
             17 => 1,
-            26 => 1,
         ];
 
     }//end getErrorList()

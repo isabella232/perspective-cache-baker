@@ -7,7 +7,7 @@
  * @license   https://github.com/squizlabs/PHP_CodeSniffer/blob/master/licence.txt BSD Licence
  */
 
-namespace PHP_CodeSniffer\Standards\Perspective\Sniffs\Functions;
+namespace PHP_CodeSniffer\Standards\PerspectiveCache\Sniffs\Functions;
 
 use PHP_CodeSniffer\Sniffs\Sniff;
 use PHP_CodeSniffer\Files\File;
@@ -79,6 +79,10 @@ class DynamicFunctionsSniff implements Sniff
     public function process(File $phpcsFile, $stackPtr)
     {
         $namespace = $phpcsFile->config->getConfigData('namespace');
+        if ($namespace === null) {
+            $namespace = '';
+        }
+
         $scopesEnd = $this->processScope($phpcsFile, $stackPtr, T_OPEN_TAG, $namespace);
         return $scopesEnd;
 
@@ -98,6 +102,7 @@ class DynamicFunctionsSniff implements Sniff
     public function processScope(File $phpcsFile, int $stackPtr, $areaTypeTokenCode, string $namespace='')
     {
         $tokens = $phpcsFile->getTokens();
+
         if ($areaTypeTokenCode === T_OPEN_TAG) {
             end($tokens);
             $endPtr = key($tokens);
@@ -132,6 +137,11 @@ class DynamicFunctionsSniff implements Sniff
             $subScopeSearchTokens = [T_FUNCTION, T_CLOSURE];
         } else {
             // If you are in a function or closure you can only define more closures.
+            if (isset($tokens[$stackPtr]['scope_opener']) === false) {
+                // Interface method or live coding.
+                return ($stackPtr + 1);
+            }
+
             $stackPtr = $tokens[$stackPtr]['scope_opener'];
             $endPtr   = $tokens[$stackPtr]['scope_closer'];
             $subScopeSearchTokens = [T_CLOSURE];
