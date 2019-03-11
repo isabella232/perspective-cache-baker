@@ -180,6 +180,9 @@ class Cache
         $file       = new DummyFile($content, $ruleset, $config);
         $file->path = '/tmp/file.php';
 
+        $runner = new \PHP_CodeSniffer\Runner();
+        set_error_handler([$runner, 'handleErrors']);
+
         // Process the file.
         try {
             $file->process();
@@ -187,6 +190,8 @@ class Cache
             $error = 'An error occurred during processing; checking has been aborted. The error message was: '.$e->getMessage();
             $file->addErrorOnLine($error, 1, 'Internal.Exception');
         }//end try
+
+        restore_error_handler();
 
         if ($stripFirstOpenPHP === true) {
             $firstOpen = $file->findNext([T_OPEN_TAG], 0);
